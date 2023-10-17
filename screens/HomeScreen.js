@@ -1,16 +1,17 @@
 import React, { Component, useLayoutEffect, useState } from 'react'
 import { Text, View,Image, TouchableOpacity,ScrollView } from 'react-native'
-import { AntDesign } from '@expo/vector-icons';
 import { EvilIcons } from '@expo/vector-icons';
 import { getAuth } from 'firebase/auth';
 import CustomChatList from '../components/CustomChatList';
 import { collection, getDocs,onSnapshot } from "firebase/firestore"; 
+import { useNavigation } from '@react-navigation/native';
 import { db } from '../firebase';
 
-export default function HomeScreen({navigation}) {
+export default function HomeScreen() {
     let auth =getAuth()
     let user=auth.currentUser
     const [chatNames,setChatNames]=useState([])
+    const navigation=useNavigation()
     
     // console.log(user.photoURL);
     useState(async()=>{
@@ -25,7 +26,7 @@ export default function HomeScreen({navigation}) {
     })
     useLayoutEffect(()=>{
         navigation.setOptions({
-            headerTitle:"Chit chaT",
+            headerTitle:"Chit chat",
             headerTitleAlign: 'center',
             headerLeft:()=>{
                 return (
@@ -38,9 +39,7 @@ export default function HomeScreen({navigation}) {
            headerRight:()=>{
             return(
                 <View style={{flexDirection:'row',justifyContent:'between',alignItems:'center',gap:18}}>
-                <TouchableOpacity>
-                <AntDesign name="camerao" size={26} color="black" />
-                </TouchableOpacity>
+               
                 <TouchableOpacity onPress={()=>navigation.navigate("newChat")}>
                 <EvilIcons name="pencil" size={30} color="black" />
                 </TouchableOpacity>
@@ -59,12 +58,17 @@ export default function HomeScreen({navigation}) {
             fontfamily:'sans',// Use 'color' instead of 'text' for text color
           }
         })
+       
     })
+    const redirect=(item)=>{
+        navigation.navigate('chat',{data:item})
+    }
     return (
      <ScrollView>
      {chatNames.map((item,index)=>{
        {/* console.log(index) */}
-        return(<CustomChatList data={item}/>)
+        return <CustomChatList key={index} redirect={()=>redirect(item)}  data={item}/>
+
      })}
            
      </ScrollView>

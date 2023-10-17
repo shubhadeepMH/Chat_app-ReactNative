@@ -6,6 +6,7 @@ import logInScreen from './screens/LogInScreen'
 import signUpScreen from './screens/SignUpScreen'
 import HomeScreen from './screens/HomeScreen';
 import NewChatScreen from './screens/NewChatScreen';
+import ChatScreen from './screens/ChatScreen';
 
 export default function App() {
   const Stack=createNativeStackNavigator()
@@ -16,6 +17,7 @@ export default function App() {
         <Stack.Screen name='SignUp' component={signUpScreen}  />
         <Stack.Screen name='Home' component={HomeScreen}  />
         <Stack.Screen name='newChat' component={NewChatScreen} options={{presentation:"containedModal"}} />
+        <Stack.Screen name='chat' component={ChatScreen}  />
       </Stack.Navigator>
     </NavigationContainer>
   );
