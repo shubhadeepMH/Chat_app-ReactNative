@@ -18,11 +18,11 @@ export default function HomeScreen() {
         onSnapshot(collection(db,'chatNames'), (querySnapshot) => {
             const updatedChatNames = [];
             querySnapshot.forEach((doc) => {
-              updatedChatNames.push({ id: doc.id, name: doc.data().chatName });
+              updatedChatNames.push({ id: doc.id, name: doc.data().chatName ,creator:doc.data().creator,image:doc.data().image});
             });
             setChatNames(updatedChatNames);
           });
-          console.log(chatNames);
+        //   console.log(chatNames);
     })
     useLayoutEffect(()=>{
         navigation.setOptions({
@@ -66,7 +66,7 @@ export default function HomeScreen() {
     return (
      <ScrollView>
      {chatNames.map((item,index)=>{
-       {/* console.log(index) */}
+       {/* console.log(item) */}
         return <CustomChatList key={index} redirect={()=>redirect(item)}  data={item}/>
 
      })}

@@ -2,9 +2,11 @@ import React, { Component, useLayoutEffect, useState } from 'react'
 import { Text, View,SafeAreaView, TextInput, TouchableOpacity } from 'react-native'
 import { collection, addDoc } from "firebase/firestore"; 
 import { db } from '../firebase';
+import { getAuth } from 'firebase/auth';
 
 export default function NewChatScreen({navigation}) {
   const [chatName,setChatName]=useState("")
+  const auth=getAuth()
   useLayoutEffect(()=>{
     navigation.setOptions({
       headerTitle:"Create chat"
@@ -12,11 +14,18 @@ export default function NewChatScreen({navigation}) {
   })
   const handleCreateChat=async ()=>{
     try {
-      const docRef = await addDoc(collection(db, "chatNames"), {
-       chatName,
-      });
-      // console.log("Document written with ID: ", docRef.id);
-      navigation.goBack();
+      if(chatName.length>0){
+        const docRef = await addDoc(collection(db, "chatNames"), {
+          chatName,
+          creator:auth.currentUser.displayName,
+          image:auth.currentUser.photoURL
+         });
+         // console.log("Document written with ID: ", docRef.id);
+         navigation.goBack();
+      }else{
+        alert('Please Enter Group Name')
+      }
+     
     } catch (e) {
       console.error("Error adding document: ", e);
     }

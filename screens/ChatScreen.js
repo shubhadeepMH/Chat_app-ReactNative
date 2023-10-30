@@ -1,48 +1,41 @@
-import React, { Component, useLayoutEffect, useState } from 'react'
-import { KeyboardAvoidingView, ScrollView,Image, Text, TextInput, View,Dimensions } from 'react-native'
+import React, { Component, useEffect, useLayoutEffect, useState } from 'react'
+import { KeyboardAvoidingView, ScrollView, Image, Text, TextInput, View, Dimensions, Keyboard } from 'react-native'
 import { useRoute } from '@react-navigation/native'
 import { TouchableOpacity } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { db } from '../firebase';
+import { getAuth } from 'firebase/auth';
+import { collection, doc, addDoc, Timestamp, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+
+
+
 // import { Appearance, AppearanceProvider, useColorScheme } from 'react-native-appearance';
 
 export default function ChatScreen({ navigation }) {
-  const names = [
-    'Alice',
-    'Bob',
-    'Charlie',
-    'David',
-    'Eve',
-    'Frank',
-    'Grace',
-    'Hank',
-    'Ivy',
-    'Jack',
-    'Katie',
-    'Liam',
-    'Mia',
-    'Noah',
-    'Olivia',
-    'Parker',
-    'Quinn',
-    'Ryan',
-    'Sophiasdfjhjkdgskldfghjdsfghdfjgsdfglhdkglhdfjghkdlfhgkhdfgkjsdlhfkgjhdj',
-    'Tyler',
-    'Uma',
-    'Victoria',
-    'William',
-    'Xander',
-    'Yara',
-    'Zane',
-  ];
+  const auth = getAuth();
+  // console.log(auth.currentUser.photoURL);
 
-  
   const screenWidth = Dimensions.get('window').width;
-  
+
   const [enteredText, setEnteredText] = useState('')
+  const [chats, setChats] = useState([])
   const route = useRoute();
   const { data } = route.params
-  // console.log(data.name);
+
+  useEffect(() => {
+    const q = query(collection(db, "chats"), orderBy("timeStamp", "desc"), where("groupName", "==", data.name));
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const allChats = [];
+      querySnapshot.forEach((doc) => {
+        // console.log(doc.data().message,data.name);
+        allChats.push(doc.data());
+      });
+      setChats(allChats)
+    })
+
+  }, [storeChat])
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTitle: `${data.name}`,
@@ -56,41 +49,87 @@ export default function ChatScreen({ navigation }) {
 
     })
   })
-  const storeChat = () => {
-
+  const storeChat = async () => {
+    Keyboard.dismiss()
+    // console.log(auth.currentUser.phoneNumber);
+    try {
+      const docRef = await addDoc(collection(db, "chats"), {
+        timeStamp: Timestamp.fromDate(new Date()),
+        groupName: data.name,
+        message: enteredText,
+        email: auth.currentUser.email,
+        image: auth.currentUser.photoURL,
+        name: auth.currentUser.displayName
+      });
+    } catch (e) {
+      console.error("Error adding document: ", e);
+    }
+    setEnteredText("")
   }
 
+  // console.log(chats.length);
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : null}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0} // Adjust this value as needed
+      // behavior={Platform.OS === 'ios' ? 'padding' : null}
+      // keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0} // Adjust this value as needed
     >
-      <View style={{ flex: 1 }}>
-        <ScrollView>
+      <View style={{
+         flex: 1,
+         paddingBottom:70
+        }}>
+        <ScrollView
+       >
           {/* Your content inside the ScrollView */}
-          {names.map((item, index) => {
-            const dynamicWidth = item.length * 16;
+          {chats && chats.map((item, index) => {
+            {/* console.log(item) */ }
+            const dynamicWidth = item.message.length*14
             return (
-              <View style={{
-                margin: 10,
+              <View key={index}
+                style={{
+                  margin: 10,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 5,
 
-              }}>
-              <Image
-                source={{
-                  // uri:"",
-                }}
-              />
+                }}>
+                <Image
+                  style={{
+                    height: 28,
+                    width: 28,
+                    borderRadius: 100,
+                  }}
+                  source={{
+                    uri: item.image || "https://avatars.githubusercontent.com/u/111757868?v=4",
+                  }}
+                />
                 <View style={{
-                  backgroundColor: 'green',
+                  backgroundColor: 'orange',
+                  minWidth:110,
                   width: dynamicWidth > screenWidth ? screenWidth - 80 : dynamicWidth, // Ensure it doesn't exceed the screen width
-      borderRadius: 40,
-                  borderRadius:40,
+                  borderRadius: 10,
+                  flexDirection:'row',
+                  position:'relative',
+                  padding:9,
+
                 }}>
                   <Text style={{
-                    textAlign:'left',
-                    padding:6,
-                  }}>{item}</Text>
+                    textAlign: 'left',
+                    margin:4
+                  }}>{item.message}</Text>
+                  <Text
+                    style={{  
+                      textAlign:'right',
+                      color: 'black',
+                      fontSize: 11,
+                      textAlign: "center",
+                      position:'absolute',
+                      bottom:-1,
+                      right:5,
+
+                    }}>
+                    9.8 p.m
+                  </Text>
                 </View>
 
               </View>
@@ -124,7 +163,7 @@ export default function ChatScreen({ navigation }) {
             value={enteredText}
           />
           <TouchableOpacity onPress={storeChat}>
-            <MaterialCommunityIcons name="send-circle" size={43} color="rgb(12,88,3)" />
+            <MaterialCommunityIcons name="send-circle" size={43} color="orange" />
           </TouchableOpacity>
         </View>
       </View>
